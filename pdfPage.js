@@ -8,7 +8,7 @@ module.exports = function createInvoice(invoice, companyInfo, footerInfo, path) 
   generateHeader(doc, companyInfo, invoice);
   generateCustomerInformation(doc, companyInfo, invoice);
   generateInvoiceTable(doc, invoice, companyInfo);
-  generateFooter(doc, companyInfo);
+  generateFooter(doc, companyInfo,footerInfo);
 
   doc.end();
   doc.pipe(fs.createWriteStream(path));
@@ -159,7 +159,7 @@ function generateSummary(doc, companyInfo, invoice, position) {
   doc.font('Helvetica');
 }
 
-function generateFooter(doc, companyInfo) {
+function generateFooter(doc, companyInfo,footerInfo) {
   const footerMargin = 150;
   if (tableBottomPosition > doc.page.height - footerMargin) {
     doc.addPage();
@@ -169,12 +169,14 @@ function generateFooter(doc, companyInfo) {
   doc
     .fontSize(10)
     .fillColor('gray')
-    .text(`ABN NO.: ${companyInfo.abnNumber}`, 50, tableBottomPosition + 20)
-    .text(`Email: ${companyInfo.email}`, 50, tableBottomPosition + 35, { link: `mailto:${companyInfo.email}` })
-    .text(`Contact: ${companyInfo.contactNumber}`, 50, tableBottomPosition + 50)
-    .text(`BSB: ${companyInfo.bsb}`, 50, tableBottomPosition + 65)
-    .text(`Account No.: ${companyInfo.accNumber}`, 50, tableBottomPosition + 80)
-    .text(`Account name: ${companyInfo.accName}`, 50, tableBottomPosition + 95)
+    for (let i = 0; i < footerInfo.length; i++) {
+        if(footerInfo[i]['label'] === 'Email:'){
+            doc.text(`${footerInfo[i]['label']} ${footerInfo[i]['value']}`, 50, tableBottomPosition + 20 + i*15, {link: `mailto:${footerInfo[i]['link']}`})
+        }
+
+      doc.text(`${footerInfo[i]['label']} ${footerInfo[i]['value']}`, 50, tableBottomPosition + 20 + i*15) // arithmetic sequence starting from 20 and diff 15 to space out the footer
+    }
+    doc
     .fontSize(10)
     .font('Helvetica-Bold')
     .text(
